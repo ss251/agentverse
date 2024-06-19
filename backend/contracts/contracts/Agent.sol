@@ -22,6 +22,7 @@ contract Agent {
         uint responsesCount;
         uint8 max_iterations;
         bool is_finished;
+        string knowledge_base;
     }
 
     // @notice Mapping from run ID to AgentRun
@@ -41,33 +42,16 @@ contract Agent {
     event OracleAddressUpdated(address indexed newOracleAddress);
 
     // @notice Configuration for the OpenAI request
-    IOracle.OpenAiRequest private config;
+    IOracle.OpenAiRequest private OpenAiConfig;
+
+    IOracle.GroqRequest private GroqConfig;
 
     // @param initialOracleAddress Initial address of the oracle contract
     // @param systemPrompt Initial prompt for the system message
-    constructor(
-        address initialOracleAddress,         
-        string memory systemPrompt
-    ) {
+    constructor(address initialOracleAddress, string memory systemPrompt) {
         owner = msg.sender;
         oracleAddress = initialOracleAddress;
         prompt = systemPrompt;
-
-        config = IOracle.OpenAiRequest({
-            model : "gpt-4-turbo-preview",
-            frequencyPenalty : 21, // > 20 for null
-            logitBias : "", // empty str for null
-            maxTokens : 1000, // 0 for null
-            presencePenalty : 21, // > 20 for null
-            responseFormat : "{\"type\":\"text\"}",
-            seed : 0, // null
-            stop : "", // null
-            temperature : 10, // Example temperature (scaled up, 10 means 1.0), > 20 means null
-            topP : 101, // Percentage 0-100, > 100 means null
-            tools : "[{\"type\":\"function\",\"function\":{\"name\":\"web_search\",\"description\":\"Search the internet\",\"parameters\":{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\",\"description\":\"Search query\"}},\"required\":[\"query\"]}}},{\"type\":\"function\",\"function\":{\"name\":\"image_generation\",\"description\":\"Generates an image using Dalle-2\",\"parameters\":{\"type\":\"object\",\"properties\":{\"prompt\":{\"type\":\"string\",\"description\":\"Dalle-2 prompt to generate an image\"}},\"required\":[\"prompt\"]}}}]",
-            toolChoice : "auto", // "none" or "auto"
-            user : "" // null
-        });
     }
 
     // @notice Ensures the caller is the contract owner
@@ -94,28 +78,31 @@ contract Agent {
     // @param query The initial user query
     // @param max_iterations The maximum number of iterations for the agent run
     // @return The ID of the newly created agent run
-    function runAgent(string memory query, uint8 max_iterations) public returns (uint) {
+    function runAgent(string memory query, uint8 maxIterations, IOracle.OpenAiRequest memory openAiConfig, IOracle.GroqRequest memory groqConfig, string memory knowledge_base) public returns (uint) {
         AgentRun storage run = agentRuns[agentRunCount];
-
         run.owner = msg.sender;
         run.is_finished = false;
         run.responsesCount = 0;
-        run.max_iterations = max_iterations;
+        run.max_iterations = maxIterations;
+        run.knowledge_base = knowledge_base;
 
-        Message memory systemMessage;
-        systemMessage.content = prompt;
-        systemMessage.role = "system";
+        Message memory systemMessage = Message("system", prompt);
         run.messages.push(systemMessage);
 
-        Message memory newMessage;
-        newMessage.content = query;
-        newMessage.role = "user";
-        run.messages.push(newMessage);
+        Message memory userMessage = Message("user", query);
+        run.messages.push(userMessage);
 
         uint currentId = agentRunCount;
-        agentRunCount = agentRunCount + 1;
+        agentRunCount++;
 
-        IOracle(oracleAddress).createOpenAiLlmCall(currentId, config);
+        if (bytes(knowledge_base).length > 0) {
+            // Query the knowledge base if provided
+            IOracle(oracleAddress).createKnowledgeBaseQuery(currentId, knowledge_base, query, 3);
+        } else if (keccak256(abi.encodePacked(openAiConfig.model)) != keccak256(abi.encodePacked(""))) {
+            IOracle(oracleAddress).createOpenAiLlmCall(currentId, openAiConfig);
+        } else {
+            IOracle(oracleAddress).createGroqLlmCall(currentId, groqConfig);
+        }
         emit AgentRunCreated(run.owner, currentId);
 
         return currentId;
@@ -160,6 +147,52 @@ contract Agent {
         run.is_finished = true;
     }
 
+    function onOracleGroqLlmResponse(
+        uint runId,
+        IOracle.GroqResponse memory response,
+        string memory errorMessage
+    ) public onlyOracle {
+        AgentRun storage run = agentRuns[runId];
+
+        if (!compareStrings(errorMessage, "")) {
+            // If there's an error message, handle it as an assistant message and finish the run
+            Message memory errorMessageStruct;
+            errorMessageStruct.role = "assistant";
+            errorMessageStruct.content = errorMessage;
+            run.messages.push(errorMessageStruct);
+            run.responsesCount++;
+            run.is_finished = true;
+            return;
+        }
+
+        if (run.responsesCount >= run.max_iterations) {
+            // If the maximum number of iterations is reached, finish the run
+            run.is_finished = true;
+            return;
+        }
+
+        if (!compareStrings(response.content, "")) {
+            // If there's a content response, add it as an assistant message
+            Message memory assistantMessage;
+            assistantMessage.content = response.content;
+            assistantMessage.role = "assistant";
+            run.messages.push(assistantMessage);
+            run.responsesCount++;
+        }
+
+        // If the agent should continue after this response, trigger the next LLM call
+        if (
+            run.responsesCount < run.max_iterations &&
+            compareStrings(errorMessage, "")
+        ) {
+            IOracle(oracleAddress).createGroqLlmCall(runId, GroqConfig);
+        } else {
+            // Otherwise, mark the run as finished
+            run.is_finished = true;
+        }
+    }
+
+
     // @notice Handles the response from the oracle for a function call
     // @param runId The ID of the agent run
     // @param response The response from the oracle
@@ -183,7 +216,39 @@ contract Agent {
         newMessage.content = result;
         run.messages.push(newMessage);
         run.responsesCount++;
-        IOracle(oracleAddress).createOpenAiLlmCall(runId, config);
+        IOracle(oracleAddress).createOpenAiLlmCall(runId, OpenAiConfig);
+    }
+
+    function onOracleKnowledgeBaseQueryResponse(uint runId, string[] memory documents, string memory errorMessage) public onlyOracle {
+        AgentRun storage run = agentRuns[runId];
+        uint256 lastIndex = run.messages.length - 1;
+        
+        require(run.messages.length > 0 && compareStrings(run.messages[lastIndex].role, "user"), "No message to add context to");
+
+        if (!compareStrings(errorMessage, "")) {
+            // Handle the error case by adding the error message as an assistant message
+            Message memory errorMessageStruct;
+            errorMessageStruct.role = "assistant";
+            errorMessageStruct.content = errorMessage;
+            run.messages.push(errorMessageStruct);
+            run.responsesCount++;
+            run.is_finished = true;
+            return;
+        }
+
+        Message storage lastMessage = run.messages[lastIndex];
+        string memory newContent = lastMessage.content;
+
+        if (documents.length > 0) {
+            newContent = string(abi.encodePacked(newContent, "\n\nRelevant context:\n"));
+        }
+
+        for (uint i = 0; i < documents.length; i++) {
+            newContent = string(abi.encodePacked(newContent, documents[i], "\n"));
+        }
+
+        lastMessage.content = newContent;
+        IOracle(oracleAddress).createOpenAiLlmCall(runId, OpenAiConfig);
     }
 
     // @notice Retrieves the message history contents for a given agent run
