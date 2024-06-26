@@ -32,7 +32,7 @@ export function Header() {
             <div className="hidden md:block">
               <ConnectWallet />
             </div>
-            <ThemeToggle />
+            {/* <ThemeToggle /> */}
             <div className="-mr-1 md:hidden">
               <MobileNavigation />
             </div>
