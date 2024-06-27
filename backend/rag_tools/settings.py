@@ -10,6 +10,6 @@ STORAGE_KEY = os.getenv("PINATA_API_KEY")
 ORACLE_ADDRESS = os.getenv("ORACLE_ADDRESS")
 ORACLE_ABI_PATH = os.getenv(
     "ORACLE_ABI_PATH",
-    "../oracles/abi/ChatOracle.json",
+    "./oracles/abi/ChatOracle.json",
 )
 MAX_DOCUMENT_SIZE_MB = 10
