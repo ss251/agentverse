@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
-import { Card, CardContent, CardFooter } from "../v0/ui/card";
-import { Label } from "../v0/ui/label";
-import { Input } from "../v0/ui/input";
-import { Textarea } from "../v0/ui/textarea";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../v0/ui/select";
-import { Button } from "../v0/ui/button";
-import { Slider } from "./ui/slider";
+import { Card, CardContent, CardFooter } from "./v0/ui/card";
+import { Label } from "./v0/ui/label";
+import { Input } from "./v0/ui/input";
+import { Textarea } from "./v0/ui/textarea";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./v0/ui/select";
+import { Button } from "./v0/ui/button";
+import { Slider } from "./v0/ui/slider";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -14,7 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "./v0/ui/dropdown-menu";
 
 export default function Component() {
   const [stage, setStage] = useState("basic");

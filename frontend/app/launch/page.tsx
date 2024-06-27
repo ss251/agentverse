@@ -1,5 +1,5 @@
 import React from 'react'
-import LaunchSection from '../ui/v0/LaunchSection'
+import LaunchSection from '../ui/LaunchSection'
 
 function page() {
   return (

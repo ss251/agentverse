@@ -1,4 +1,4 @@
-import { Landing } from "./ui/v0/landing";
+import { Landing } from "./ui/landing";
 
 export default function Home() {
   return (

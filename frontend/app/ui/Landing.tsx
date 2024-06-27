@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { Button } from "./ui/button"
-import { Card, CardContent } from "./ui/card"
+import { Button } from "./v0/ui/button"
+import { Card, CardContent } from "./v0/ui/card"
 import { JSX, SVGProps } from "react"
 import Image from "next/image"
 
@@ -10,7 +10,7 @@ export function Landing() {
       <main className="flex flex-col items-center justify-center flex-1 w-full max-w-2xl text-center">
         <h1 className="text-4xl font-bold text-blue-600">Agentverse</h1>
         <p className="mt-4 text-lg text-muted-foreground">Launch and interact AI powered Agents on chain</p>
-        <Button className="mt-6">Start now</Button>
+        <Link href="/launch"><Button className="mt-6">Start now</Button></Link>
         <Card className="mt-8 w-48 h-48 md:w-64 md:h-64">
           <CardContent className="flex items-center justify-center h-full">
             {/* <Image width={45} height={45} src="/placeholder-user.jpg" alt="placeholder"/> */}
