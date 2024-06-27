@@ -69,7 +69,7 @@ export default function MobileNavigation() {
       {({ open }) => (
         <>
           <PopoverButton
-            className="relative z-10 flex h-8 w-8 items-center justify-center [&:not(:focus-visible)]:focus:outline-none"
+            className="relative z-10 flex h-8 w-8 items-center justify-center focus:outline-none"
             aria-label="Toggle Navigation"
           >
             <MobileNavIcon open={open} />
