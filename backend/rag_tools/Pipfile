@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+langchain = "==0.1.13"
+langchain-community = "==0.0.29"
+python-dotenv = "==1.0.1"
+requests = "==2.31.0"
+tqdm = "==4.66.2"
+unstructured = {version = "0.12.6", extras = ["all-docs"]}
+web3 = "==6.15.1"
+
+[requires]
+python_version = "3.11"
