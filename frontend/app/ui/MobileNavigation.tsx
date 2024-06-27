@@ -96,12 +96,14 @@ export default function MobileNavigation() {
           >
             <PopoverPanel
               as="div"
-              className="absolute inset-x-0 top-full mt-4 flex origin-top flex-col rounded-2xl bg-background-light dark:bg-background-dark p-4 text-lg tracking-tight text-foreground-light dark:text-foreground-dark shadow-xl ring-1 ring-slate-900/5"
+              className="absolute inset-x-0 top-full mt-4 flex origin-top flex-col rounded-2xl bg-background p-4 text-lg tracking-tight text-foreground shadow-xl ring-1 ring-slate-900/5"
             >
               <MobileNavLink href="/launch">Launch</MobileNavLink>
               <MobileNavLink href="/explore">Explore</MobileNavLink>
               <MobileNavLink href="/my-agents">My Agents</MobileNavLink>
-              <ConnectWallet/>
+              <div className="flex justify-center">
+                <ConnectWallet />
+              </div>
             </PopoverPanel>
           </Transition>
         </>
