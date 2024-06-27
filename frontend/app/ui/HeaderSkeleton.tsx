@@ -8,18 +8,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ThemeToggle } from "./ThemeToggle";
 import { ConnectWallet } from "./ConnectWallet";
-import { HeaderSkeleton } from "./HeaderSkeleton";
+import { Button } from "./Button";
 
-export function Header() {
+export function HeaderSkeleton() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  if (!mounted) {
-    return <HeaderSkeleton />;
-  }
 
   return (
     <header className="py-10 bg-background-light dark:bg-background-dark">
@@ -33,8 +29,8 @@ export function Header() {
             </div>
           </div>
           <div className="flex items-center gap-x-5 md:gap-x-8">
-            <div className="hidden md:block">
-             <ConnectWallet />
+            <div className="hidden md:block py-2 px-24">
+              <Button className="bg-transparent"/>
             </div>
             {/* <ThemeToggle /> */}
             <div className="-mr-1 md:hidden">
