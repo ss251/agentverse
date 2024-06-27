@@ -5,4 +5,4 @@ requests==2.31.0
 tqdm==4.66.2
 unstructured[all-docs]==0.12.6
 web3==6.15.1
-flask
+Flask==2.1.1
