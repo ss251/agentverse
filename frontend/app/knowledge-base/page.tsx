@@ -6,7 +6,7 @@ import { Input } from '../ui/v0/ui/input';
 import { Button } from '../ui/v0/ui/button';
 import { Slider } from '../ui/v0/ui/slider';
 import { Alert, AlertDescription, AlertTitle } from '../ui/v0/ui/alert';
-import { Spinner } from '../ui/v0/ui/Spinner';
+import { Spinner } from '../ui/v0/ui/spinner';
 import { CopyIcon, TickIcon } from '../ui/v0/ui/icons';
 
 export default function KnowledgeBaseGeneration() {
