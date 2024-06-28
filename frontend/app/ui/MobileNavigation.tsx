@@ -101,6 +101,7 @@ export default function MobileNavigation() {
               <MobileNavLink href="/launch">Launch</MobileNavLink>
               <MobileNavLink href="/explore">Explore</MobileNavLink>
               <MobileNavLink href="/my-agents">My Agents</MobileNavLink>
+              <MobileNavLink href="/knowledge-base">Knowledge Base</MobileNavLink>
               <div className="flex justify-center">
                 <ConnectWallet />
               </div>
