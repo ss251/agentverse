@@ -1,11 +1,7 @@
 import { writeFile, unlink } from 'fs/promises';
 import { NextResponse } from 'next/server';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+export const runtime = 'nodejs'; // Adjust runtime configuration as needed
 
 export async function POST(req) {
   try {
