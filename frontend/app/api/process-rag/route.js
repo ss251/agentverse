@@ -27,7 +27,9 @@ export async function POST(req) {
       formData.append('chunk_size', data.get('chunk_size'));
       formData.append('chunk_overlap', data.get('chunk_overlap'));
 
-      const response = await fetch('http://127.0.0.1:5001/process_rag', {
+      const apiEndpoint = process.env.NEXT_PUBLIC_API_ENDPOINT;
+
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         body: formData,
       });
