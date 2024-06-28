@@ -118,10 +118,9 @@ export default function KnowledgeBaseGeneration() {
                   )}
                 </CardFooter>
               </form>
-              {response && (
+              {response && !loading && (
                 <>
                   <div className='mt-4'><Label className="text-lg">CID</Label></div>
-                  
                   <Alert variant="default" className="mt-2 relative">
                     <AlertDescription>
                       <pre className="whitespace-pre-wrap">{response.cid}</pre>
