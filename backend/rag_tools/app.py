@@ -57,4 +57,4 @@ def process_rag():
             os.remove(file_path)  # Clean up the uploaded file
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5001)
