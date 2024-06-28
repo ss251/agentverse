@@ -1,5 +1,7 @@
 import { writeFile, unlink } from 'fs/promises';
 import { NextResponse } from 'next/server';
+import { CID } from 'multiformats/cid';
+import { base32 } from 'multiformats/bases/base32';
 
 export const runtime = 'nodejs'; // Adjust runtime configuration as needed
 
@@ -37,8 +39,19 @@ export async function POST(req) {
       const result = await response.json();
 
       if (response.ok) {
-        console.log(`Response: ${JSON.stringify(result)}`);
-        return NextResponse.json(result, { status: 200 });
+        // Convert both cid and index_cid from CIDv0 to CIDv1
+        const cidV0 = result.cid;
+        const indexCidV0 = result.index_cid;
+        
+        const cid_v1 = cidV0 ? CID.parse(cidV0).toV1().toString(base32) : null;
+        const index_cid_v1 = indexCidV0 ? CID.parse(indexCidV0).toV1().toString(base32) : null;
+
+        // Return the response with both original and converted CIDs
+        return NextResponse.json({
+          ...result,
+          cid_v1,
+          index_cid_v1
+        }, { status: 200 });
       } else {
         return NextResponse.json(result, { status: response.status });
       }
