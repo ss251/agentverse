@@ -26,6 +26,7 @@ export function HeaderSkeleton() {
               <NavLink href="/launch">Launch</NavLink>
               <NavLink href="/explore">Explore</NavLink>
               <NavLink href="/my-agents">My Agents</NavLink>
+              <NavLink href="/my-agents">Knowledge Base</NavLink>
             </div>
           </div>
           <div className="flex items-center gap-x-5 md:gap-x-8">
