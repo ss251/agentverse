@@ -41,12 +41,18 @@ contract AgentManager is ERC721URIStorage {
         prompt = newPrompt;
     }
 
-    function deployAgent(IOracle.OpenAiRequest memory openAiConfig, IOracle.GroqRequest memory groqConfig, bool useOpenAi, string memory tokenURI, string memory knowledgeBase) public returns (uint) {
+    function deployAgent(IOracle.OpenAiRequest memory openAiConfig, IOracle.GroqRequest memory groqConfig, bool useOpenAi, string memory tokenURI, string memory knowledgeBase, string memory tools) public returns (uint) {
         uint256 tokenId = _nextTokenId++;
         _mint(msg.sender, tokenId);
         _setTokenURI(tokenId, tokenURI);
 
         AgentConfig storage config = agentConfigs[tokenId];
+
+        if (useOpenAi) {
+            openAiConfig.tools = tools;
+            openAiConfig.toolChoice = "auto";
+        }
+
         config.openAiConfig = openAiConfig;
         config.groqConfig = groqConfig;
         config.useOpenAi = useOpenAi;
