@@ -22,6 +22,16 @@ export function HeaderSkeleton() {
       <Container>
         <nav className="relative z-50 flex justify-between">
           <div className="flex items-center md:gap-x-12">
+          <Link href="/">
+              <div className="flex items-center">
+                <Image
+                  src={"/logo.png"}
+                  alt="agentverse logo"
+                  width={50}
+                  height={50}
+                />
+              </div>
+            </Link>
             <div className="hidden md:flex md:gap-x-6">
               <NavLink href="/launch">Launch</NavLink>
               <NavLink href="/explore">Explore</NavLink>

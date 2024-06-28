@@ -26,6 +26,16 @@ export function Header() {
       <Container>
         <nav className="relative z-50 flex justify-between">
           <div className="flex items-center md:gap-x-12">
+            <Link href="/">
+              <div className="flex items-center">
+                <Image
+                  src={"/logo.png"}
+                  alt="agentverse logo"
+                  width={50}
+                  height={50}
+                />
+              </div>
+            </Link>
             <div className="hidden md:flex md:gap-x-6">
               <NavLink href="/launch">Launch</NavLink>
               <NavLink href="/explore">Explore</NavLink>
@@ -35,7 +45,7 @@ export function Header() {
           </div>
           <div className="flex items-center gap-x-5 md:gap-x-8">
             <div className="hidden md:block">
-             <ConnectWallet />
+              <ConnectWallet />
             </div>
             {/* <ThemeToggle /> */}
             <div className="-mr-1 md:hidden">
