@@ -30,6 +30,7 @@ contract AgentManager is ERC721URIStorage {
         bool useOpenAi;
         string knowledgeBase;
         uint8 maxIterations;
+        uint32 numDocuments;
     }
 
     mapping(uint => AgentConfig) public agentConfigs;
@@ -184,7 +185,8 @@ contract AgentManager is ERC721URIStorage {
         string memory tokenURI,
         string memory knowledgeBase,
         string memory tools,
-        uint8 maxIterations
+        uint8 maxIterations,
+        uint32 initialNumDocuments
     ) public returns (uint) {
         uint256 tokenId = _nextTokenId++;
         _mint(msg.sender, tokenId);
@@ -205,10 +207,22 @@ contract AgentManager is ERC721URIStorage {
         config.useOpenAi = useOpenAi;
         config.knowledgeBase = knowledgeBase;
         config.maxIterations = maxIterations;
+        config.numDocuments = initialNumDocuments;
 
         emit AgentDeployed(tokenId, msg.sender);
 
         return tokenId;
+    }
+
+    function updateKnowledgeBaseDocumentCount(
+        uint tokenId,
+        uint32 count
+    ) public {
+        require(
+            ownerOf(tokenId) == msg.sender,
+            "Caller is not the owner of the agent"
+        );
+        agentConfigs[tokenId].numDocuments = count;
     }
 
     function runAgent(uint tokenId, string memory query) public {
@@ -235,11 +249,12 @@ contract AgentManager is ERC721URIStorage {
         agentRunCount++;
 
         if (bytes(config.knowledgeBase).length > 0) {
+            uint32 numDocs = config.numDocuments > 0 ? config.numDocuments : 3; // fallback to 3 if not set
             IOracle(oracleAddress).createKnowledgeBaseQuery(
                 currentId,
                 config.knowledgeBase,
                 query,
-                3
+                numDocs
             );
         } else if (config.useOpenAi) {
             IOracle(oracleAddress).createOpenAiLlmCall(
