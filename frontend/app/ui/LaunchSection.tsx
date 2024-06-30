@@ -31,22 +31,24 @@ import { AgentManagerABI } from "@/abi/AgentManager.sol/AgentManager";
 
 const defaultValues = {
   modelType: "openai",
-  openaiModel: "gpt-4-turbo",
-  groqModel: "llama3-8b-8192",
+  openaiModel: "gpt-4-turbo-preview",
+  groqModel: "",
   frequencyPenalty: 0,
   logitBias: "",
-  maxTokens: 50,
+  maxTokens: 1000,
+  maxIterations: 10,
   presencePenalty: 0,
-  responseFormat: "",
+  responseFormat: "{\"type\":\"text\"}",
   seed: 0,
   stop: "",
   temperature: 0.7,
   topP: 1,
-  tools: [],
-  toolChoice: "auto",
+  tools: "",
+  toolChoice: "none",
   user: "",
   tokenURI: "",
   knowledgeBase: "",
+  prompt: "Hello world!",
 };
 
 export default function Component() {
@@ -62,6 +64,10 @@ export default function Component() {
   );
   const [logitBias, setLogitBias] = useState(defaultValues.logitBias);
   const [maxTokens, setMaxTokens] = useState(defaultValues.maxTokens);
+  const [maxIterations, setMaxIterations] = useState(
+    defaultValues.maxIterations
+  );
+  const [prompt, setPrompt] = useState(defaultValues.prompt);
   const [presencePenalty, setPresencePenalty] = useState(
     defaultValues.presencePenalty
   );
@@ -72,13 +78,14 @@ export default function Component() {
   const [stop, setStop] = useState(defaultValues.stop);
   const [temperature, setTemperature] = useState(defaultValues.temperature);
   const [topP, setTopP] = useState(defaultValues.topP);
-  const [tools, setTools] = useState<string[]>(defaultValues.tools);
+  const [tools, setTools] = useState<string[]>([]);
   const [toolChoice, setToolChoice] = useState(defaultValues.toolChoice);
   const [user, setUser] = useState(defaultValues.user);
   const [tokenURI, setTokenURI] = useState(defaultValues.tokenURI);
   const [knowledgeBase, setKnowledgeBase] = useState(
     defaultValues.knowledgeBase
   );
+  const [numberofDocuments, setNumberofDocuments] = useState(0);
   const [isDeploying, setIsDeploying] = useState(false);
 
   const toolOptions = [
@@ -97,8 +104,17 @@ export default function Component() {
     });
   };
 
-  const uploadToPinata = async (metadata: { name: string; description: string; attributes: ({ trait_type: string; value: string; } | { trait_type: string; value: number; })[]; openaiConfig: {}; groqConfig: {}; }) => {
-    console.log(metadata)
+  const uploadToPinata = async (metadata: {
+    name: string;
+    description: string;
+    attributes: (
+      | { trait_type: string; value: string }
+      | { trait_type: string; value: number }
+    )[];
+    openaiConfig: {};
+    groqConfig: {};
+  }) => {
+    console.log(metadata);
     const formData = new FormData();
     formData.append(
       "file",
@@ -123,7 +139,7 @@ export default function Component() {
       }
 
       const result = await response.json();
-      console.log(result)
+      console.log(result);
       return result.IpfsHash;
     } catch (error) {
       console.error("Error uploading to Pinata:", error);
@@ -190,7 +206,7 @@ export default function Component() {
         },
       });
     }
-    return JSON.stringify(selectedTools).replace(/"/g, '\\"');
+    return JSON.stringify(selectedTools).replace(/"/g, '\"');
   };
 
   const handleDeployAgent = async () => {
@@ -220,7 +236,7 @@ export default function Component() {
       stop: stop || defaultValues.stop,
       temperature: Math.round((temperature || defaultValues.temperature) * 10), // Convert to uint range
       topP: Math.round((topP || defaultValues.topP) * 100), // Convert to uint range
-      tools: generateToolsJson(),
+      tools: "",
       toolChoice: toolChoice || defaultValues.toolChoice,
       user: user || defaultValues.user,
     };
@@ -240,10 +256,6 @@ export default function Component() {
     };
 
     const useOpenAi = modelType === "openai";
-
-    console.log("OpenAI Config:", openAiConfig);
-    console.log("Groq Config:", groqConfig);
-    console.log("Model Type:", modelType);
 
     const metadata = {
       name: "Agent",
@@ -276,43 +288,23 @@ export default function Component() {
       const cid = await uploadToPinata(metadata);
       const tokenURI = `ipfs://${cid}`;
 
+      const toolsJson = generateToolsJson();
+      openAiConfig.tools = toolsJson
+      if (toolsJson === "") {
+        openAiConfig.toolChoice = "none";
+      } else {
+        openAiConfig.toolChoice = "auto";
+      }
+
       const tx = await contract.deployAgent(
-        useOpenAi
-          ? openAiConfig
-          : {
-              model: "",
-              frequencyPenalty: 0,
-              logitBias: "",
-              maxTokens: 0,
-              presencePenalty: 0,
-              responseFormat: "",
-              seed: 0,
-              stop: "",
-              temperature: 0,
-              topP: 0,
-              user: "",
-            },
-        useOpenAi
-          ? {
-              model: "",
-              frequencyPenalty: 0,
-              logitBias: "",
-              maxTokens: 0,
-              presencePenalty: 0,
-              responseFormat: "",
-              seed: 0,
-              stop: "",
-              temperature: 0,
-              topP: 0,
-              tools: "",
-              toolChoice: "",
-              user: "",
-            }
-          : groqConfig,
+        openAiConfig,
+        groqConfig,
         useOpenAi,
         tokenURI || defaultValues.tokenURI,
         knowledgeBase || defaultValues.knowledgeBase,
-        generateToolsJson()
+        toolsJson,
+        maxIterations,
+        numberofDocuments || 0
       );
 
       await tx.wait();
@@ -374,9 +366,9 @@ export default function Component() {
                   max={100}
                   step={1}
                   min={0}
-                  onValueChange={(value) => setMaxTokens(value[0])}
+                  onValueChange={(value) => setMaxIterations(value[0])}
                 />
-                <div>Value: {maxTokens}</div>
+                <div>Value: {maxIterations}</div>
               </div>
               <div className="grid gap-4">
                 <Label htmlFor="initial-prompt">Initial Prompt</Label>
@@ -384,6 +376,7 @@ export default function Component() {
                   id="initial-prompt"
                   placeholder="Enter initial prompt"
                   className="min-h-[100px]"
+                  onChange={(e) => setPrompt(e.target.value)}
                 />
               </div>
               <div className="grid gap-4">
@@ -394,6 +387,18 @@ export default function Component() {
                   onChange={(e) => setKnowledgeBase(e.target.value)}
                 />
               </div>
+              {knowledgeBase && (
+                <div className="grid gap-4">
+                  <Label htmlFor="knowledge-base-url">Number of Document</Label>
+                  <Input
+                    id="knowledge-base-url"
+                    placeholder="Enter knowledge base URL"
+                    onChange={(e) =>
+                      setNumberofDocuments(Number(e.target.value))
+                    }
+                  />
+                </div>
+              )}
             </div>
             <CardFooter className="flex justify-between">
               <Button onClick={() => setStage("basic")}>Back</Button>
@@ -456,7 +461,7 @@ export default function Component() {
                 <Label htmlFor="openai-max-tokens">Max Tokens</Label>
                 <Slider
                   defaultValue={[0]}
-                  max={100}
+                  max={1000}
                   step={1}
                   min={0}
                   onValueChange={(value) => setMaxTokens(value[0])}
@@ -621,7 +626,7 @@ export default function Component() {
                 <Label htmlFor="groq-max-tokens">Max Tokens</Label>
                 <Slider
                   defaultValue={[0]}
-                  max={100}
+                  max={1000}
                   step={1}
                   min={0}
                   onValueChange={(value) => setMaxTokens(value[0])}
@@ -714,8 +719,10 @@ export default function Component() {
         return (
           <div className="space-y-4 mt-6">
             <p>Your agent is launching...</p>
-            <Button onClick={handleDeployAgent}>Deploy Agent</Button>
-            <Button onClick={() => setStage("basic")}>Start Over</Button>
+            <CardFooter className="flex justify-between">
+              <Button onClick={handleDeployAgent}>Deploy Agent</Button>
+              <Button onClick={() => setStage("basic")}>Start Over</Button>
+            </CardFooter>
           </div>
         );
       default:
