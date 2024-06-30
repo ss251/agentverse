@@ -13,10 +13,10 @@ export default function KnowledgeBaseGeneration() {
   const [file, setFile] = useState(null);
   const [chunkSize, setChunkSize] = useState(1500);
   const [chunkOverlap, setChunkOverlap] = useState(200);
-  const [response, setResponse] = useState<null | { cid_v1: string; index_cid_v1: string; [key: string]: string }>(null);
+  const [response, setResponse] = useState<null | { cid_v1: string; index_cid_v1: string; 'number of documents': string; [key: string]: string }>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [copySuccess, setCopySuccess] = useState({ cid_v1: false, index_cid_v1: false });
+  const [copySuccess, setCopySuccess] = useState({ cid_v1: false, index_cid_v1: false, 'number of documents': false });
 
   const handleFileChange = (e: { target: { files: any; }; }) => {
     const fileList = e.target.files;
@@ -136,6 +136,15 @@ export default function KnowledgeBaseGeneration() {
                     </AlertDescription>
                     <div className="absolute top-3 right-4">
                       {copySuccess.index_cid_v1 ? <TickIcon className="text-green-500" /> : <CopyIcon onClick={() => handleCopy('index_cid_v1')} className="cursor-pointer" />}
+                    </div>
+                  </Alert>
+                  <div className='mt-4'><Label className="text-lg">Number of Documents</Label></div>
+                  <Alert variant="default" className="mt-2 relative">
+                    <AlertDescription>
+                      <pre className="whitespace-pre-wrap">{response['number of documents']}</pre>
+                    </AlertDescription>
+                    <div className="absolute top-3 right-4">
+                      {copySuccess['number of documents'] ? <TickIcon className="text-green-500" /> : <CopyIcon onClick={() => handleCopy('number of documents')} className="cursor-pointer" />}
                     </div>
                   </Alert>
                 </>
