@@ -94,7 +94,7 @@ contract AgentManager is ERC721URIStorage {
         require(
             bytes(config.responseFormat).length == 0 ||
                 keccak256(abi.encodePacked(config.responseFormat)) ==
-                keccak256(abi.encodePacked('{"type":"text"}')),
+                keccak256(abi.encodePacked("{\"type\":\"text\"}")),
             "Invalid response format"
         );
         require(config.seed == 0 || config.seed > 0, "Invalid seed");
