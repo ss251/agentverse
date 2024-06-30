@@ -304,6 +304,7 @@ contract AgentManager is ERC721URIStorage {
             );
             return;
         }
+        run.is_finished = true;
     }
 
     function onOracleGroqLlmResponse(
