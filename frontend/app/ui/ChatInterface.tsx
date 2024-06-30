@@ -3,11 +3,9 @@ import React, { useState, useEffect } from "react";
 import { ethers, Contract, TransactionReceipt, BrowserProvider } from "ethers";
 import { useWeb3ModalProvider, useWeb3ModalAccount } from "@web3modal/ethers/react";
 import { AgentManagerABI } from "@/abi/AgentManager.sol/AgentManager";
-import { Card } from "./v0/ui/card";
-import { CardContent } from "./v0/ui/card";
+import { Card, CardContent, CardDescription } from "./v0/ui/card";
 import { Input } from "./v0/ui/input";
 import { Button } from "./v0/ui/button";
-
 
 interface Message {
   role: string;
@@ -15,7 +13,7 @@ interface Message {
 }
 
 const ChatInterface: React.FC = () => {
-  const { walletProvider } = useWeb3ModalProvider()
+  const { walletProvider } = useWeb3ModalProvider();
   const { address } = useWeb3ModalAccount();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -24,7 +22,7 @@ const ChatInterface: React.FC = () => {
   const [runFinished, setRunFinished] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastMessageIndex, setLastMessageIndex] = useState(0);
-  const tokenId = 4; // Hardcoded for now
+  const tokenId = 4;
 
   const fetchNewMessages = async (contract: Contract, runId: number, lastMessageIndex: number): Promise<void> => {
     setLoading(true);
@@ -53,7 +51,7 @@ const ChatInterface: React.FC = () => {
         const parsedLog = contract.interface.parseLog(log);
         if (parsedLog && parsedLog.name === "AgentRunCreated") {
           console.log("Agent run ID found:", ethers.toNumber(parsedLog.args[1]));
-          return ethers.toNumber(parsedLog.args[1]);
+          return ethers.toNumber(parsedLog.args[1])
         }
       } catch (error) {
         console.log("Could not parse log:", log);
@@ -117,7 +115,6 @@ const ChatInterface: React.FC = () => {
       <div className="flex p-2 border-t border-gray-300">
         <Input
           type="text"
-          className="flex-1 p-2 border border-gray-300 rounded-md"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your message..."
