@@ -1,122 +1,96 @@
-"use client";
-
-import { ethers } from "ethers";
+"use client"
 import React, { useState, useEffect } from "react";
-import {
-  useWeb3Modal,
-  useWeb3ModalAccount,
-  useWeb3ModalProvider,
-} from "@web3modal/ethers/react";
-import { BrowserProvider, Contract } from "ethers";
-import { AgentABI } from "@/abi/Agent.sol/Agent"; // Update the import path to the correct ABI
-import { Button } from "./v0/ui/button";
+import { ethers, Contract, TransactionReceipt, BrowserProvider } from "ethers";
+import { useWeb3ModalProvider, useWeb3ModalAccount } from "@web3modal/ethers/react";
+import { AgentManagerABI } from "@/abi/AgentManager.sol/AgentManager";
+import { Card } from "./v0/ui/card";
+import { CardContent } from "./v0/ui/card";
 import { Input } from "./v0/ui/input";
-import { Card, CardContent } from "./v0/ui/card";
+import { Button } from "./v0/ui/button";
 
-const ChatInterface = () => {
-  const { walletProvider } = useWeb3ModalProvider();
+
+interface Message {
+  role: string;
+  content: string;
+}
+
+const ChatInterface: React.FC = () => {
+  const { walletProvider } = useWeb3ModalProvider()
   const { address } = useWeb3ModalAccount();
-  const [messages, setMessages] = useState();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [currentRunId, setCurrentRunId] = useState(null);
+  const [currentRunId, setCurrentRunId] = useState<number | null>(null);
   const [runFinished, setRunFinished] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [lastMessageIndex, setLastMessageIndex] = useState(0);
+  const tokenId = 4; // Hardcoded for now
 
-  const fetchNewMessages = async (contract, runId, currentMessagesCount) => {
+  const fetchNewMessages = async (contract: Contract, runId: number, lastMessageIndex: number): Promise<void> => {
+    setLoading(true);
     try {
       const allMessageContents = await contract.getMessageHistoryContents(runId);
       const allMessageRoles = await contract.getMessageHistoryRoles(runId);
 
-      const newMessages = allMessageContents.slice(currentMessagesCount).map((content, index) => ({
-        role: allMessageRoles[currentMessagesCount + index],
+      const newMessages = allMessageContents.slice(lastMessageIndex).map((content: string, index: number) => ({
+        role: allMessageRoles[lastMessageIndex + index],
         content,
-      })).filter(message => message.role === "user" || message.role === "assistant");
+      })).filter((message: Message) => message.role === "user" || message.role === "assistant");
 
-      return newMessages;
+      setMessages((prev) => [...prev, ...newMessages]);
+      setLastMessageIndex(lastMessageIndex + newMessages.length);
     } catch (error) {
       console.error("Error fetching new messages:", error);
       setError("Failed to fetch new messages. Please try again.");
-      return ;
-    }
-  };
-
-  const getAgentRunId = (receipt, contract) => {
-    let agentRunID;
-    for (const log of receipt.logs) {
-      try {
-        const parsedLog = contract.interface.parseLog(log);
-        if (parsedLog && parsedLog.name === "AgentRunCreated") {
-          agentRunID = ethers.toNumber(parsedLog.args[1]);
-        }
-      } catch (error) {
-        console.log("Could not parse log:", log);
-      }
-    }
-    return agentRunID;
-  };
-
-  const sendMessage = async () => {
-    setLoading(true);
-    setError(null);
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const signer = await ethersProvider.getSigner();
-    const contract = new Contract(
-      process.env.NEXT_PUBLIC_AGENT_CONTRACT ?? "",
-      AgentABI,
-      signer
-    );
-
-    try {
-      if (currentRunId === null) {
-        console.log("Creating new agent run with message:", input);
-        const tx = await contract.runAgent(input, 5);
-        const receipt = await tx.wait();
-        const runId = getAgentRunId(receipt, contract);
-        if (runId !== undefined) {
-          setCurrentRunId(runId);
-          const newMessages = await fetchNewMessages(contract, runId, 0);
-          setMessages(newMessages);
-          startMessageLoop(contract, runId, newMessages.length);
-        } else {
-          throw new Error("Couldn't find AgentRunCreated event in transaction logs");
-        }
-      } else {
-        console.log("Adding message to existing agent run:", input);
-        const newMessages = [...messages, { role: "user", content: input }];
-        setMessages(newMessages);
-        const tx = await contract.onOracleFunctionResponse(currentRunId, input, "");
-        await tx.wait();
-        startMessageLoop(contract, currentRunId, newMessages.length);
-      }
-      setInput("");
-    } catch (error) {
-      console.error("Error sending message:", error);
-      setError("Failed to send message. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const startMessageLoop = async (contract, runId, currentMessagesCount) => {
-    try {
-      while (true) {
-        const newMessages = await fetchNewMessages(contract, runId, currentMessagesCount);
-        if (newMessages.length > 0) {
-          setMessages((prevMessages) => [...prevMessages, ...newMessages]);
-          currentMessagesCount += newMessages.length;
+  const getAgentRunId = (receipt: TransactionReceipt, contract: Contract): number | undefined => {
+    for (const log of receipt.logs) {
+      try {
+        const parsedLog = contract.interface.parseLog(log);
+        if (parsedLog && parsedLog.name === "AgentRunCreated") {
+          console.log("Agent run ID found:", ethers.toNumber(parsedLog.args[1]));
+          return ethers.toNumber(parsedLog.args[1]);
         }
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        const isFinished = await contract.isRunFinished(runId);
-        if (isFinished) {
-          console.log(`Agent run ID ${runId} finished!`);
-          setRunFinished(true);
-          break;
+      } catch (error) {
+        console.log("Could not parse log:", log);
+      }
+    }
+    return undefined;
+  };
+
+  const sendMessage = async () => {
+    setLoading(true);
+    setError(null);
+    const ethersProvider = walletProvider ? new BrowserProvider(walletProvider) : undefined;
+    const signer = await ethersProvider?.getSigner();
+    const contract = new Contract(
+      process.env.NEXT_PUBLIC_AGENT_MANAGER_CONTRACT_ADDRESS || "",
+      AgentManagerABI,
+      signer
+    );
+
+    try {
+      if (currentRunId === null) {
+        const tx = await contract.runAgent(tokenId, input); // Assuming max_iterations is 10
+        const receipt = await tx.wait();
+        const runId = getAgentRunId(receipt, contract);
+        if (runId !== undefined) {
+          setCurrentRunId(runId);
+          await fetchNewMessages(contract, runId, 0);
+        } else {
+          throw new Error("Couldn't find AgentRunCreated event in transaction logs");
         }
       }
     } catch (error) {
-      console.error("Error in message loop:", error);
-      setError("An error occurred while fetching messages. Please try again.");
+      console.error("Error sending message:", error);
+      setError("Failed to send message. Please try again.");
+    } finally {
+      setLoading(false);
+      setInput("");
     }
   };
 
