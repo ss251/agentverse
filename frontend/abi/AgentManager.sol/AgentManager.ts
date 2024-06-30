@@ -142,6 +142,25 @@ export const AgentManagerABI = [
     inputs: [
       {
         indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "runId",
+        type: "uint256",
+      },
+    ],
+    name: "AgentRunCreated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
         internalType: "address",
         name: "owner",
         type: "address",
@@ -217,6 +236,19 @@ export const AgentManagerABI = [
       },
     ],
     name: "MetadataUpdate",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newOracleAddress",
+        type: "address",
+      },
+    ],
+    name: "OracleAddressUpdated",
     type: "event",
   },
   {
@@ -396,6 +428,55 @@ export const AgentManagerABI = [
       {
         internalType: "string",
         name: "knowledgeBase",
+        type: "string",
+      },
+      {
+        internalType: "uint8",
+        name: "maxIterations",
+        type: "uint8",
+      },
+      {
+        internalType: "uint32",
+        name: "numDocuments",
+        type: "uint32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "agentRuns",
+    outputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "responsesCount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint8",
+        name: "max_iterations",
+        type: "uint8",
+      },
+      {
+        internalType: "bool",
+        name: "is_finished",
+        type: "bool",
+      },
+      {
+        internalType: "string",
+        name: "knowledge_base",
         type: "string",
       },
     ],
@@ -595,6 +676,16 @@ export const AgentManagerABI = [
         name: "tools",
         type: "string",
       },
+      {
+        internalType: "uint8",
+        name: "maxIterations",
+        type: "uint8",
+      },
+      {
+        internalType: "uint32",
+        name: "initialNumDocuments",
+        type: "uint32",
+      },
     ],
     name: "deployAgent",
     outputs: [
@@ -629,6 +720,44 @@ export const AgentManagerABI = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "agentId",
+        type: "uint256",
+      },
+    ],
+    name: "getMessageHistoryContents",
+    outputs: [
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "agentId",
+        type: "uint256",
+      },
+    ],
+    name: "getMessageHistoryRoles",
+    outputs: [
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "owner",
         type: "address",
@@ -651,6 +780,25 @@ export const AgentManagerABI = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "runId",
+        type: "uint256",
+      },
+    ],
+    name: "isRunFinished",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "name",
     outputs: [
@@ -661,6 +809,202 @@ export const AgentManagerABI = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "runId",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "response",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "errorMessage",
+        type: "string",
+      },
+    ],
+    name: "onOracleFunctionResponse",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "runId",
+        type: "uint256",
+      },
+      {
+        components: [
+          {
+            internalType: "string",
+            name: "id",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "content",
+            type: "string",
+          },
+          {
+            internalType: "uint64",
+            name: "created",
+            type: "uint64",
+          },
+          {
+            internalType: "string",
+            name: "model",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "systemFingerprint",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "object",
+            type: "string",
+          },
+          {
+            internalType: "uint32",
+            name: "completionTokens",
+            type: "uint32",
+          },
+          {
+            internalType: "uint32",
+            name: "promptTokens",
+            type: "uint32",
+          },
+          {
+            internalType: "uint32",
+            name: "totalTokens",
+            type: "uint32",
+          },
+        ],
+        internalType: "struct IOracle.GroqResponse",
+        name: "response",
+        type: "tuple",
+      },
+      {
+        internalType: "string",
+        name: "errorMessage",
+        type: "string",
+      },
+    ],
+    name: "onOracleGroqLlmResponse",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "runId",
+        type: "uint256",
+      },
+      {
+        internalType: "string[]",
+        name: "documents",
+        type: "string[]",
+      },
+      {
+        internalType: "string",
+        name: "errorMessage",
+        type: "string",
+      },
+    ],
+    name: "onOracleKnowledgeBaseQueryResponse",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "runId",
+        type: "uint256",
+      },
+      {
+        components: [
+          {
+            internalType: "string",
+            name: "id",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "content",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "functionName",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "functionArguments",
+            type: "string",
+          },
+          {
+            internalType: "uint64",
+            name: "created",
+            type: "uint64",
+          },
+          {
+            internalType: "string",
+            name: "model",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "systemFingerprint",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "object",
+            type: "string",
+          },
+          {
+            internalType: "uint32",
+            name: "completionTokens",
+            type: "uint32",
+          },
+          {
+            internalType: "uint32",
+            name: "promptTokens",
+            type: "uint32",
+          },
+          {
+            internalType: "uint32",
+            name: "totalTokens",
+            type: "uint32",
+          },
+        ],
+        internalType: "struct IOracle.OpenAiResponse",
+        name: "response",
+        type: "tuple",
+      },
+      {
+        internalType: "string",
+        name: "errorMessage",
+        type: "string",
+      },
+    ],
+    name: "onOracleOpenAiLlmResponse",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -719,11 +1063,6 @@ export const AgentManagerABI = [
         internalType: "string",
         name: "query",
         type: "string",
-      },
-      {
-        internalType: "uint8",
-        name: "maxIterations",
-        type: "uint8",
       },
     ],
     name: "runAgent",
@@ -896,6 +1235,24 @@ export const AgentManagerABI = [
       },
     ],
     name: "transferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint32",
+        name: "count",
+        type: "uint32",
+      },
+    ],
+    name: "updateKnowledgeBaseDocumentCount",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
