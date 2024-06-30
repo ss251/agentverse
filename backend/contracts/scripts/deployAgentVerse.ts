@@ -15,9 +15,6 @@ async function main() {
 
   const agentManagerAddress = await deployAgentManager(oracleAddress, initialPrompt);
   console.log(`AgentManager deployed to ${agentManagerAddress}`);
-
-  const agentAddress = await deployAgent(oracleAddress, initialPrompt);
-  console.log(`Agent deployed to ${agentAddress}`);
 }
 
 async function deployAgentManager(oracleAddress: string, initialPrompt: string): Promise<string> {
@@ -39,27 +36,6 @@ async function deployAgentManager(oracleAddress: string, initialPrompt: string):
   console.log(`AgentManager deployed to ${agentManagerAddress}`);
 
   return agentManagerAddress;
-}
-
-async function deployAgent(oracleAddress: string, initialPrompt: string): Promise<string> {
-  const Agent = await ethers.getContractFactory("Agent");
-  const agent = await Agent.deploy(oracleAddress, initialPrompt);
-
-  const deploymentTransaction = agent.deploymentTransaction();
-  if (!deploymentTransaction) {
-    throw new Error("Failed to get deployment transaction for Agent.");
-  }
-
-  await deploymentTransaction.wait();
-
-  if (!agent.target) {
-    throw new Error("Failed to get deployment address for Agent.");
-  }
-
-  const agentAddress = agent.target as string;
-  console.log(`Agent deployed to ${agentAddress}`);
-
-  return agentAddress;
 }
 
 // We recommend this pattern to be able to use async/await everywhere
