@@ -99,7 +99,7 @@ export default function MobileNavigation() {
               className="absolute inset-x-0 top-full mt-4 flex origin-top flex-col rounded-2xl bg-background p-4 text-lg tracking-tight text-foreground shadow-xl ring-1 ring-slate-900/5"
             >
               <MobileNavLink href="/launch">Launch</MobileNavLink>
-              <MobileNavLink href="/explore">Explore</MobileNavLink>
+              <MobileNavLink href="/chat">Chat</MobileNavLink>
               <MobileNavLink href="/my-agents">My Agents</MobileNavLink>
               <MobileNavLink href="/knowledge-base">Knowledge Base</MobileNavLink>
               <div className="flex justify-center">

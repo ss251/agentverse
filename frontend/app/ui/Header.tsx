@@ -38,7 +38,7 @@ export function Header() {
             </Link>
             <div className="hidden md:flex md:gap-x-6">
               <NavLink href="/launch">Launch</NavLink>
-              <NavLink href="/explore">Explore</NavLink>
+              <NavLink href="/chat">Chat</NavLink>
               <NavLink href="/my-agents">My Agents</NavLink>
               <NavLink href="/knowledge-base">Knowledge Base</NavLink>
             </div>
