@@ -13,10 +13,10 @@ export default function KnowledgeBaseGeneration() {
   const [file, setFile] = useState(null);
   const [chunkSize, setChunkSize] = useState(1500);
   const [chunkOverlap, setChunkOverlap] = useState(200);
-  const [response, setResponse] = useState<null | { cid_v1: string; index_cid_v1: string; 'number of documents': string; [key: string]: string }>(null);
+  const [response, setResponse] = useState<null | { cid: string; index_cid: string; 'number of documents': string; [key: string]: string }>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [copySuccess, setCopySuccess] = useState({ cid_v1: false, index_cid_v1: false, 'number of documents': false });
+  const [copySuccess, setCopySuccess] = useState({ cid: false, index_cid: false, 'number of documents': false });
 
   const handleFileChange = (e: { target: { files: any; }; }) => {
     const fileList = e.target.files;
@@ -123,19 +123,19 @@ export default function KnowledgeBaseGeneration() {
                   <div className='mt-4'><Label className="text-lg">CID</Label></div>
                   <Alert variant="default" className="mt-2 relative">
                     <AlertDescription>
-                      <pre className="whitespace-pre-wrap">{response.cid_v1.slice(0, 20)}...{response.cid_v1.slice(-10)}</pre>
+                      <pre className="whitespace-pre-wrap">{response.cid.slice(0, 20)}...{response.cid.slice(-10)}</pre>
                     </AlertDescription>
                     <div className="absolute top-3 right-4">
-                      {copySuccess.cid_v1 ? <TickIcon className="text-green-500" /> : <CopyIcon onClick={() => handleCopy('cid_v1')} className="cursor-pointer" />}
+                      {copySuccess.cid ? <TickIcon className="text-green-500" /> : <CopyIcon onClick={() => handleCopy('cid')} className="cursor-pointer" />}
                     </div>
                   </Alert>
                   <div className='mt-4'><Label className="text-lg">Index CID</Label></div>
                   <Alert variant="default" className="mt-2 relative">
                     <AlertDescription>
-                      <pre className="whitespace-pre-wrap">{response.index_cid_v1.slice(0, 20)}...{response.index_cid_v1.slice(-10)}</pre>
+                      <pre className="whitespace-pre-wrap">{response.index_cid.slice(0, 20)}...{response.index_cid.slice(-10)}</pre>
                     </AlertDescription>
                     <div className="absolute top-3 right-4">
-                      {copySuccess.index_cid_v1 ? <TickIcon className="text-green-500" /> : <CopyIcon onClick={() => handleCopy('index_cid_v1')} className="cursor-pointer" />}
+                      {copySuccess.index_cid ? <TickIcon className="text-green-500" /> : <CopyIcon onClick={() => handleCopy('index_cid')} className="cursor-pointer" />}
                     </div>
                   </Alert>
                   <div className='mt-4'><Label className="text-lg">Number of Documents</Label></div>
