@@ -47,7 +47,8 @@ def process_rag():
                 return jsonify({
                     'message': 'Knowledge base indexed successfully',
                     'index_cid': response.index_cid,
-                    'cid': cid
+                    'cid': cid,
+                    'number of documents': len(documents),
                 })
             else:
                 return jsonify({'error': response.error or 'Failed to index knowledge base'}), 500
